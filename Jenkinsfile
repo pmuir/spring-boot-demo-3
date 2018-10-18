@@ -17,6 +17,11 @@ pipeline {
         }
         steps {
 
+          sh "git config --global credential.helper store"
+          sh "jx step validate --min-jx-version 1.1.73"
+          sh "jx step git credentials"
+          sh 'jx step pre extend'
+
           sh "mvn versions:set -DnewVersion=$PREVIEW_VERSION"
           sh "mvn install"
           sh 'export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml'
@@ -44,6 +49,7 @@ pipeline {
             sh "git config --global credential.helper store"
             sh "jx step validate --min-jx-version 1.1.73"
             sh "jx step git credentials"
+            sh 'jx step pre extend'
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
             sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
@@ -75,4 +81,9 @@ pipeline {
         }
       }
     }
+        post {
+            always {
+                sh 'jx step post run'
+            }
+        }
   }
